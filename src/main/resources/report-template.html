@@ -173,7 +173,9 @@
     /* ── Empty / Footer ───────────────────────────────────────────────────── */
     .empty{text-align:center;padding:3.5rem 2rem;color:var(--muted);font-size:.9rem}
     .empty-icon{font-size:2.5rem;margin-bottom:.75rem}
-    .footer{text-align:center;padding:1.25rem;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);margin-top:2rem}
+    .footer{text-align:center;padding:1.5rem 1.25rem;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);margin-top:2rem;line-height:1.8}
+    .footer a{color:var(--accent);text-decoration:none}.footer a:hover{text-decoration:underline}
+    .footer-coffee{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .8rem;border-radius:6px;background:#ffdd00;color:#000!important;font-weight:700;font-size:.72rem;text-decoration:none!important;transition:opacity .15s}.footer-coffee:hover{opacity:.85}
 
     /* ── Scrollbar ────────────────────────────────────────────────────────── */
     ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--surface)}
@@ -306,7 +308,12 @@
 
 </div><!-- /main -->
 
-<div class="footer">OpenReporter &mdash; {{GENERATED_AT}} &mdash; {{ENVIRONMENT}}</div>
+<div class="footer">
+  <strong style="color:var(--accent)">OpenReporter</strong> &mdash; {{GENERATED_AT}} &mdash; {{ENVIRONMENT}}<br/>
+  Developed by <a href="https://www.linkedin.com/in/swadhin-acharya-a4053b161/" target="_blank" rel="noopener">Swadhin Acharya</a>
+  &nbsp;&middot;&nbsp;
+  <a class="footer-coffee" href="https://www.buymeacoffee.com/swadhinsoft" target="_blank" rel="noopener">&#9749; Buy me a coffee</a>
+</div>
 
 <!-- Screenshot modal -->
 <div class="modal" id="modal" onclick="closeModal(event)">
