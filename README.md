@@ -8,6 +8,8 @@ One dependency. Beautiful, self-contained HTML reports for TestNG, JUnit 5, and 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Java 11+](https://img.shields.io/badge/Java-11%2B-orange.svg)](https://adoptium.net)
 
+> **Latest:** `v1.1.0` · [Branches](#branches--version-history) · [Changelog](#version-history)
+
 ---
 
 ## Features
@@ -15,7 +17,10 @@ One dependency. Beautiful, self-contained HTML reports for TestNG, JUnit 5, and 
 | | |
 |---|---|
 | **Interactive dashboard** | Doughnut chart, pass-rate ring, per-browser bar chart |
-| **Auto screenshots** | Captured on failure, embedded as base64 |
+| **Step-level logging** | `step()` / `stepPass()` / `stepFail()` — numbered steps with icons in expanded rows |
+| **Suite breakdown** | Per-suite pass/fail table, auto-shown when 2+ suites run |
+| **Copy buttons** | One-click copy on error message and stack trace |
+| **Auto screenshots** | Captured on failure, embedded as base64, zoomable lightbox |
 | **Dark / Light mode** | Toggle persisted in `localStorage` |
 | **Browser & OS icons** | Chrome, Firefox, Edge, Safari, Windows, macOS, Android, Linux |
 | **Search & Filter** | Live search + Passed / Failed / Skipped filters |
@@ -45,15 +50,17 @@ Add the dependency:
 <dependency>
   <groupId>com.github.swadhinsoft</groupId>
   <artifactId>open-reporter</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <scope>test</scope>
 </dependency>
 ```
 
 **Gradle (Kotlin DSL):**
 ```kotlin
-testImplementation("com.github.swadhinsoft:open-reporter:1.0.0")
+testImplementation("com.github.swadhinsoft:open-reporter:1.1.0")
 ```
+
+> Need an older version? See [Branches & Version History](#branches--version-history).
 
 ---
 
@@ -166,6 +173,79 @@ Open it in any browser. No web server needed.
 
 ---
 
+## Step Logging (v1.1+)
+
+Document what your test does with named, numbered steps shown directly in the report:
+
+```java
+@Test
+public void loginTest() {
+    OpenReporter.getInstance().step("Navigate to login page");
+    driver.get("https://example.com/login");
+
+    OpenReporter.getInstance().step("Enter credentials");
+    driver.findElement(By.id("username")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("secret");
+
+    OpenReporter.getInstance().stepPass("Credentials entered successfully");
+
+    driver.findElement(By.id("submit")).click();
+
+    boolean loggedIn = driver.findElement(By.id("dashboard")).isDisplayed();
+    if (loggedIn) OpenReporter.getInstance().stepPass("Login verified — dashboard visible");
+    else          OpenReporter.getInstance().stepFail("Dashboard not found after login");
+}
+```
+
+| Method | Icon | When to use |
+|--------|------|-------------|
+| `step("description")` | → | Neutral step — navigating, typing, clicking |
+| `stepPass("description")` | ✓ | Explicit assertion passed |
+| `stepFail("description")` | ✗ | Explicit assertion failed |
+
+Steps appear in the expanded test row, numbered, before the logs section.
+
+---
+
+## Branches & Version History
+
+Each version has its own long-lived branch so you can pin to any release:
+
+| Branch | Version | Maven dependency |
+|--------|---------|-----------------|
+| [`main`](https://github.com/swadhinsoft/open-reporter/tree/main) | Latest (`1.1.0`) | `1.1.0` |
+| [`v1.1`](https://github.com/swadhinsoft/open-reporter/tree/v1.1) | 1.1.0 | `1.1.0` |
+| [`v1.0`](https://github.com/swadhinsoft/open-reporter/tree/v1.0) | 1.0.0 | `1.0.0` |
+
+To use a specific branch via JitPack instead of a tag:
+```xml
+<version>v1.0-SNAPSHOT</version>  <!-- always latest on the v1.0 branch -->
+```
+
+---
+
+## Version History
+
+### v1.1.0 — 2026-03-30
+- **Step logging** — `step()`, `stepPass()`, `stepFail()` API; numbered steps with coloured icons in expanded test rows
+- **Suite breakdown table** — per-suite pass/fail/skip/rate summary, automatically shown when 2+ suites are present
+- **Copy buttons** — one-click clipboard copy on error message and stack trace panels
+
+### v1.0.0 — 2026-03-29
+- Initial release
+- TestNG, JUnit 5, Cucumber 7 adapters
+- Selenium + Appium (WebDriver) support
+- Interactive HTML report: doughnut chart, pass-rate ring, browser breakdown bars
+- Dark / Light mode toggle (localStorage)
+- Browser & OS icons (Font Awesome)
+- Auto screenshot on failure (base64 embedded, lightbox zoom)
+- Live search + Passed / Failed / Skipped filter
+- Excel (.xlsx) + PDF export
+- Custom project logo (base64 embedded from config path)
+- `openreporter.json` config with 4-step lookup chain
+
+---
+
 ## License
 
-MIT © [swadhinsoft](https://github.com/swadhinsoft)
+MIT © [Swadhin Acharya](https://www.linkedin.com/in/swadhin-acharya-a4053b161/) · [swadhinsoft](https://github.com/swadhinsoft)

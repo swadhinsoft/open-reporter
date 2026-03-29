@@ -23,7 +23,8 @@ public class TestResultModel {
     private String errorMessage;
     private String stackTrace;
     private String screenshotBase64; // full data URI: "data:image/png;base64,..."
-    private List<String> logs = new ArrayList<>();
+    private List<String>    logs  = new ArrayList<>();
+    private List<StepModel> steps = new ArrayList<>();
 
     // ── Getters ──────────────────────────────────────────────────────────────
 
@@ -38,7 +39,8 @@ public class TestResultModel {
     public String getErrorMessage()      { return errorMessage; }
     public String getStackTrace()        { return stackTrace; }
     public String getScreenshotBase64()  { return screenshotBase64; }
-    public List<String> getLogs()        { return logs; }
+    public List<String>    getLogs()  { return logs; }
+    public List<StepModel> getSteps() { return steps; }
 
     // ── Setters ──────────────────────────────────────────────────────────────
 
@@ -54,9 +56,15 @@ public class TestResultModel {
     public void setStackTrace(String v)       { this.stackTrace = v; }
     public void setScreenshotBase64(String v) { this.screenshotBase64 = v; }
     public void setLogs(List<String> v)       { this.logs = v; }
+    public void setSteps(List<StepModel> v)   { this.steps = v; }
 
     public void addLog(String entry) {
         if (this.logs == null) this.logs = new ArrayList<>();
         this.logs.add(entry);
+    }
+
+    public void addStep(StepModel step) {
+        if (this.steps == null) this.steps = new ArrayList<>();
+        this.steps.add(step);
     }
 }

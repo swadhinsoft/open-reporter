@@ -157,6 +157,24 @@
     .err-box{background:var(--fail-dim);border:1px solid var(--fail-border);border-radius:8px;padding:1rem;font-family:"Courier New",monospace;font-size:.77rem;color:var(--fail);white-space:pre-wrap;word-break:break-all;max-height:180px;overflow-y:auto}
     .stack-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:"Courier New",monospace;font-size:.72rem;color:var(--muted);white-space:pre-wrap;word-break:break-all;max-height:160px;overflow-y:auto;margin-top:.5rem}
     .stack-toggle{font-size:.74rem;color:var(--accent);cursor:pointer;margin-top:.4rem;display:inline-block}
+
+    /* ── Steps ───────────────────────────────────────────────────────────── */
+    .step-list{list-style:none;margin:.35rem 0}
+    .step-item{display:flex;align-items:flex-start;gap:.55rem;padding:.38rem .75rem;margin-bottom:.2rem;border-radius:6px;font-size:.82rem;background:var(--surface);border-left:3px solid var(--border)}
+    .step-item.si{border-left-color:var(--accent)}.step-item.sp{border-left-color:var(--pass)}.step-item.sf{border-left-color:var(--fail)}
+    .step-n{font-size:.65rem;color:var(--muted);min-width:16px;padding-top:.2rem;flex-shrink:0;font-variant-numeric:tabular-nums}
+    .step-ic{font-size:.8rem;min-width:12px;flex-shrink:0}
+    .step-item.si .step-ic{color:var(--accent)}.step-item.sp .step-ic{color:var(--pass)}.step-item.sf .step-ic{color:var(--fail)}
+    .step-txt{color:var(--text);flex:1;line-height:1.5}
+    /* ── Copy inline button ──────────────────────────────────────────────── */
+    .copy-inline{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.72rem;padding:.1rem .3rem;border-radius:4px;transition:color .15s;margin-left:.4rem;vertical-align:middle}.copy-inline:hover{color:var(--accent)}
+    /* ── Suite breakdown table ───────────────────────────────────────────── */
+    .suite-tbl{width:100%;border-collapse:collapse}
+    .suite-tbl th{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.5rem .85rem;background:var(--surface2);border-bottom:1px solid var(--border)}
+    .suite-tbl th.r,.suite-tbl td.r{text-align:right}.suite-tbl th.c,.suite-tbl td.c{text-align:center}
+    .suite-tbl td{font-size:.82rem;padding:.55rem .85rem;border-bottom:1px solid var(--border);color:var(--text)}
+    .suite-tbl tr:last-child td{border-bottom:none}
+    .s-rate{font-weight:700}
     .ss-thumb{max-width:320px;max-height:180px;border-radius:8px;border:1px solid var(--border);cursor:zoom-in;transition:transform .15s,border-color .15s;display:block;margin-top:.25rem}
     .ss-thumb:hover{transform:scale(1.02);border-color:var(--accent)}
     .meta-row{display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem}
@@ -273,6 +291,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Suite breakdown (JS populates this; hidden when only 1 suite) -->
+  <div id="suiteSection" style="margin-bottom:1.75rem"></div>
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -391,6 +412,7 @@ function osIcon(os, browser) {
 document.addEventListener('DOMContentLoaded', () => {
   initChart();
   initBrowserBars();
+  initSuiteBreakdown();
   render();
 });
 
@@ -451,6 +473,61 @@ function initBrowserBars() {
   });
 }
 
+/* ── Suite breakdown ─────────────────────────────────────────────────────── */
+function initSuiteBreakdown() {
+  const map = {};
+  testData.forEach(t => {
+    const s = t.suiteName || 'Default';
+    if (!map[s]) map[s] = {total:0,passed:0,failed:0,skipped:0,ms:0};
+    map[s].total++;
+    if (t.status==='PASSED')      map[s].passed++;
+    else if (t.status==='FAILED') map[s].failed++;
+    else                          map[s].skipped++;
+    map[s].ms += t.durationMs || 0;
+  });
+  const names = Object.keys(map);
+  if (names.length <= 1) return; // only interesting with 2+ suites
+  const rows = names.sort().map(name => {
+    const s   = map[name];
+    const rate = s.total > 0 ? (s.passed * 100 / s.total) : 0;
+    const col  = rate === 100 ? 'var(--pass)' : rate >= 70 ? 'var(--skip)' : 'var(--fail)';
+    return `<tr>
+      <td>${esc(name)}</td>
+      <td class="c">${s.total}</td>
+      <td class="c" style="color:var(--pass)">${s.passed}</td>
+      <td class="c" style="color:var(--fail)">${s.failed}</td>
+      <td class="c" style="color:var(--skip)">${s.skipped}</td>
+      <td class="c"><span class="s-rate" style="color:${col}">${rate.toFixed(1)}%</span></td>
+      <td class="r" style="color:var(--muted)">${fmt(s.ms)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('suiteSection').innerHTML = `
+    <div class="chart-card">
+      <div class="chart-title"><i class="fa-solid fa-layer-group"></i>&nbsp; Suite Breakdown</div>
+      <table class="suite-tbl">
+        <thead><tr>
+          <th>Suite</th><th class="c">Total</th><th class="c">Passed</th>
+          <th class="c">Failed</th><th class="c">Skipped</th>
+          <th class="c">Pass Rate</th><th class="r">Duration</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+/* ── Copy text ───────────────────────────────────────────────────────────── */
+function copyText(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const btn = document.querySelector(`[data-copy="${id}"]`);
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
+    if (btn) {
+      btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+      setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i>'; }, 1500);
+    }
+  }).catch(() => {});
+}
+
 /* ── Filter & render ─────────────────────────────────────────────────────── */
 function filter(f) {
   activeFilter = f;
@@ -482,7 +559,7 @@ function render() {
     const id  = 'r' + i;
     const dur = fmt(t.durationMs);
     const open = openRows.has(id);
-    const hasDetails = t.errorMessage || t.screenshotBase64 || (t.logs && t.logs.length);
+    const hasDetails = t.errorMessage || t.screenshotBase64 || (t.logs && t.logs.length) || (t.steps && t.steps.length);
     const bIcon = browserIcon(t.browser);
     const oIcon = osIcon(t.os, t.browser);
 
@@ -496,16 +573,30 @@ function render() {
       bodyContent += `</div>`;
     }
 
+    if (t.steps && t.steps.length) {
+      const icons = {INFO:'<i class="fa-solid fa-arrow-right-long"></i>',PASS:'<i class="fa-solid fa-check"></i>',FAIL:'<i class="fa-solid fa-xmark"></i>'};
+      const cls   = {INFO:'si',PASS:'sp',FAIL:'sf'};
+      bodyContent += `<div class="section-lbl"><i class="fa-solid fa-list-check"></i> Steps (${t.steps.length})</div>
+        <ol class="step-list">${t.steps.map((s,n)=>`
+        <li class="step-item ${cls[s.status]||'si'}">
+          <span class="step-n">${n+1}</span>
+          <span class="step-ic">${icons[s.status]||icons.INFO}</span>
+          <span class="step-txt">${esc(s.description)}</span>
+        </li>`).join('')}</ol>`;
+    }
     if (t.logs && t.logs.length) {
       bodyContent += `<div class="section-lbl"><i class="fa-solid fa-list-ul"></i> Logs</div>
         <ul class="log-list">${t.logs.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>`;
     }
     if (t.errorMessage) {
-      bodyContent += `<div class="section-lbl"><i class="fa-solid fa-triangle-exclamation"></i> Error</div>
-        <div class="err-box">${esc(t.errorMessage)}</div>`;
+      bodyContent += `<div class="section-lbl"><i class="fa-solid fa-triangle-exclamation"></i> Error
+        <button class="copy-inline" data-copy="err${i}" onclick="copyText('err${i}')" title="Copy error"><i class="fa-regular fa-copy"></i></button>
+      </div>
+      <div class="err-box" id="err${i}">${esc(t.errorMessage)}</div>`;
     }
     if (t.stackTrace) {
       bodyContent += `<span class="stack-toggle" onclick="toggleStack('st${i}')">&#9656; Show stack trace</span>
+        <button class="copy-inline" data-copy="st${i}" onclick="copyText('st${i}')" title="Copy stack trace"><i class="fa-regular fa-copy"></i></button>
         <div class="stack-box" id="st${i}" style="display:none">${esc(t.stackTrace)}</div>`;
     }
     if (t.screenshotBase64) {

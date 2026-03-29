@@ -2,6 +2,7 @@ package io.github.swadhinsoft.openreporter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.swadhinsoft.openreporter.config.ReporterConfig;
+import io.github.swadhinsoft.openreporter.model.StepModel;
 import io.github.swadhinsoft.openreporter.model.TestResultModel;
 import org.openqa.selenium.WebDriver;
 
@@ -117,6 +118,30 @@ public class OpenReporter {
         m.setDurationMs(System.currentTimeMillis() - m.getStartTime());
         results.add(m);
         current.remove();
+    }
+
+    // ── Step logging ─────────────────────────────────────────────────────────
+
+    /**
+     * Log a neutral step (shown with → in the report).
+     * Call from within a running test to document what the test is doing.
+     * <pre>{@code
+     * OpenReporter.getInstance().step("Navigate to login page");
+     * OpenReporter.getInstance().step("Enter credentials");
+     * }</pre>
+     */
+    public void step(String description)     { addStep(description, "INFO"); }
+
+    /** Log a step that explicitly passed (shown with ✓ in the report). */
+    public void stepPass(String description) { addStep(description, "PASS"); }
+
+    /** Log a step that explicitly failed (shown with ✗ in the report). */
+    public void stepFail(String description) { addStep(description, "FAIL"); }
+
+    private void addStep(String description, String status) {
+        TestResultModel m = current.get();
+        if (m == null) return;
+        m.addStep(new StepModel(description, status));
     }
 
     // ── Report generation ────────────────────────────────────────────────────
