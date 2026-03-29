@@ -1,0 +1,6 @@
+io/github/swadhinsoft/openreporter/adapter/TestNGListener.class
+io/github/swadhinsoft/openreporter/OpenReporter.class
+io/github/swadhinsoft/openreporter/config/ReporterConfig.class
+io/github/swadhinsoft/openreporter/adapter/CucumberPlugin.class
+io/github/swadhinsoft/openreporter/adapter/JUnit5Extension.class
+io/github/swadhinsoft/openreporter/model/TestResultModel.class

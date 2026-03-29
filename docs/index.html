@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>OpenReporter — Framework-Agnostic HTML Test Reporter for Java</title>
+  <meta name="description" content="Beautiful, self-contained HTML test reports for Java — works with TestNG, JUnit 5, Cucumber, Selenium and Appium. One dependency, zero config."/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+  <style>
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #21262d;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --accent:   #58a6ff;
+      --accent2:  #a5d6ff;
+      --pass:     #3fb950;
+      --fail:     #f85149;
+      --skip:     #d29922;
+      --radius:   12px;
+      --max:      1100px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* ── Nav ─────────────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,17,23,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: .85rem 2rem;
+    }
+    .nav-inner {
+      max-width: var(--max); margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: .6rem;
+      font-weight: 700; font-size: 1.1rem; color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg,var(--accent),var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; color: #0d1117; font-weight: 800;
+    }
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: .875rem; transition: color .15s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-gh {
+      display: flex; align-items: center; gap: .4rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: .4rem .9rem; border-radius: 8px;
+      font-size: .82rem; font-weight: 500; text-decoration: none; transition: all .15s;
+    }
+    .nav-gh:hover { background: var(--border); }
+
+    /* ── Hero ────────────────────────────────────────────────────────── */
+    .hero {
+      padding: 6rem 2rem 5rem;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -40%; left: 50%; transform: translateX(-50%);
+      width: 900px; height: 600px;
+      background: radial-gradient(ellipse at center, rgba(88,166,255,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: rgba(88,166,255,.1); border: 1px solid rgba(88,166,255,.3);
+      color: var(--accent); padding: .3rem .85rem; border-radius: 99px;
+      font-size: .78rem; font-weight: 600; letter-spacing: .04em; margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 3.8rem);
+      font-weight: 800; line-height: 1.1;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 1.25rem;
+    }
+    .hero-sub {
+      max-width: 620px; margin: 0 auto 2.5rem;
+      color: var(--muted); font-size: 1.1rem; line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--accent); color: #0d1117;
+      padding: .75rem 1.75rem; border-radius: 10px;
+      font-weight: 700; font-size: .95rem; text-decoration: none; transition: all .15s;
+    }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: .5rem;
+      border: 1px solid var(--border); color: var(--text);
+      padding: .75rem 1.75rem; border-radius: 10px;
+      font-weight: 600; font-size: .95rem; text-decoration: none; transition: all .15s;
+    }
+    .btn-outline:hover { background: var(--surface2); border-color: var(--accent); }
+    .hero-chips { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: 2.5rem; }
+    .chip {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted); padding: .3rem .75rem; border-radius: 6px; font-size: .78rem;
+    }
+    .chip i { font-size: .85rem; }
+
+    /* ── Section wrapper ─────────────────────────────────────────────── */
+    section { padding: 5rem 2rem; }
+    section + section { border-top: 1px solid var(--border); }
+    .section-inner { max-width: var(--max); margin: 0 auto; }
+    .section-label {
+      font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: .6rem;
+    }
+    .section-title {
+      font-size: clamp(1.6rem,4vw,2.2rem); font-weight: 800; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .section-desc { color: var(--muted); max-width: 600px; margin-bottom: 3rem; line-height: 1.7; }
+
+    /* ── Feature grid ────────────────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      transition: transform .15s, border-color .15s, box-shadow .15s;
+    }
+    .feature-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(88,166,255,.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,.3);
+    }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; margin-bottom: 1rem;
+    }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: .4rem; }
+    .feature-card p  { color: var(--muted); font-size: .875rem; line-height: 1.6; }
+
+    /* ── Install ─────────────────────────────────────────────────────── */
+    .install-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .step-header {
+      padding: .85rem 1.25rem;
+      background: var(--surface2); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .6rem;
+      font-size: .78rem; color: var(--muted); font-weight: 600;
+    }
+    .step-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); color: #0d1117;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 800; flex-shrink: 0;
+    }
+    .code-block {
+      padding: 1.25rem;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: .8rem; line-height: 1.7; overflow-x: auto;
+      white-space: pre; color: var(--text);
+    }
+    .code-block .kw  { color: #ff7b72; }
+    .code-block .str { color: #a5d6a7; }
+    .code-block .cmt { color: var(--muted); }
+    .code-block .tag { color: #79c0ff; }
+    .code-block .val { color: #ffa657; }
+    .copy-row {
+      padding: .6rem 1.25rem;
+      background: var(--surface2); border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .copy-row span { font-size: .72rem; color: var(--muted); }
+    .copy-btn {
+      font-size: .72rem; color: var(--accent); background: none;
+      border: none; cursor: pointer; display: flex; align-items: center; gap: .3rem;
+    }
+    .copy-btn:hover { color: var(--accent2); }
+
+    /* ── Tabs ────────────────────────────────────────────────────────── */
+    .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab {
+      padding: .5rem 1.1rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--muted); font-size: .82rem; font-weight: 600; cursor: pointer;
+      transition: all .15s; display: flex; align-items: center; gap: .4rem;
+    }
+    .tab:hover { background: var(--surface2); color: var(--text); }
+    .tab.active {
+      background: rgba(88,166,255,.12); border-color: rgba(88,166,255,.4);
+      color: var(--accent);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .tab-panel .step-card { margin-bottom: 1rem; }
+    .note {
+      background: rgba(88,166,255,.07); border: 1px solid rgba(88,166,255,.2);
+      border-radius: 8px; padding: .85rem 1.1rem;
+      font-size: .84rem; color: var(--muted); margin-top: 1rem; line-height: 1.6;
+    }
+    .note strong { color: var(--accent); }
+
+    /* ── Config table ────────────────────────────────────────────────── */
+    .config-table { width: 100%; border-collapse: collapse; }
+    .config-table th, .config-table td {
+      padding: .75rem 1rem; text-align: left;
+      border-bottom: 1px solid var(--border); font-size: .875rem;
+    }
+    .config-table th {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted);
+      background: var(--surface2);
+    }
+    .config-table td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: .8rem; }
+    .config-table td:nth-child(3) { font-family: 'JetBrains Mono', monospace; color: var(--skip); font-size: .8rem; }
+    .config-table tr:last-child td { border-bottom: none; }
+
+    /* ── Report preview ──────────────────────────────────────────────── */
+    .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .preview-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+    }
+    .preview-card h3 { font-size: .95rem; font-weight: 700; margin-bottom: .85rem; display: flex; align-items: center; gap: .5rem; }
+    .preview-card h3 i { color: var(--accent); }
+    .feature-list { list-style: none; }
+    .feature-list li {
+      display: flex; align-items: flex-start; gap: .6rem;
+      font-size: .875rem; color: var(--muted); margin-bottom: .55rem; line-height: 1.5;
+    }
+    .feature-list li i { color: var(--pass); font-size: .75rem; margin-top: .3rem; flex-shrink: 0; }
+
+    /* ── Frameworks row ──────────────────────────────────────────────── */
+    .compat-row {
+      display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: stretch; margin-top: 2rem;
+    }
+    .compat-card {
+      flex: 1; min-width: 200px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      display: flex; flex-direction: column; gap: .35rem;
+    }
+    .compat-card .fw-name { font-weight: 700; font-size: .95rem; display: flex; align-items: center; gap: .5rem; }
+    .compat-card .fw-class { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--accent); }
+    .compat-card .fw-desc { font-size: .82rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem; text-align: center;
+      color: var(--muted); font-size: .82rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-logo { font-size: 1.5rem; font-weight: 800; color: var(--text); display: block; margin-bottom: .5rem; }
+
+    /* ── Responsive ──────────────────────────────────────────────────── */
+    @media(max-width:768px) {
+      .install-steps { grid-template-columns: 1fr; }
+      .preview-grid  { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ───────────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <div class="nav-logo-icon">OR</div>
+      OpenReporter
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#integration">Integration</a>
+      <a href="#config">Config</a>
+      <a href="https://github.com/swadhinsoft/open-reporter" target="_blank" class="nav-gh">
+        <i class="fa-brands fa-github"></i> GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge"><i class="fa-solid fa-bolt"></i> v1.0.0 — Open Source</div>
+  <h1>Beautiful Test Reports<br/>for Every Java Framework</h1>
+  <p class="hero-sub">
+    OpenReporter generates self-contained, interactive HTML reports from your test runs.
+    One dependency. Works with TestNG, JUnit&nbsp;5, Cucumber, Selenium, and Appium — no code changes required.
+  </p>
+  <div class="hero-actions">
+    <a class="btn-primary" href="#install">
+      <i class="fa-solid fa-download"></i> Get Started
+    </a>
+    <a class="btn-outline" href="https://github.com/swadhinsoft/open-reporter" target="_blank">
+      <i class="fa-brands fa-github"></i> View on GitHub
+    </a>
+  </div>
+  <div class="hero-chips">
+    <span class="chip"><i class="fa-brands fa-java" style="color:#f89820"></i> Java 11+</span>
+    <span class="chip"><i class="fa-solid fa-check-circle" style="color:#3fb950"></i> TestNG</span>
+    <span class="chip"><i class="fa-solid fa-check-circle" style="color:#3fb950"></i> JUnit 5</span>
+    <span class="chip"><i class="fa-solid fa-check-circle" style="color:#3fb950"></i> Cucumber 7</span>
+    <span class="chip"><i class="fa-brands fa-chrome" style="color:#4285f4"></i> Selenium</span>
+    <span class="chip"><i class="fa-solid fa-mobile-screen" style="color:#3ddc84"></i> Appium</span>
+    <span class="chip"><i class="fa-solid fa-box" style="color:#ffa657"></i> JitPack</span>
+  </div>
+</section>
+
+<!-- ── Features ──────────────────────────────────────────────────────────── -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything in a single HTML file</h2>
+    <p class="section-desc">
+      Reports are fully self-contained — no server, no external assets needed.
+      Share a single <code style="color:var(--accent)">.html</code> file and it works everywhere.
+    </p>
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(88,166,255,.12);color:var(--accent)">
+          <i class="fa-solid fa-chart-pie"></i>
+        </div>
+        <h3>Interactive Dashboard</h3>
+        <p>Doughnut chart for test distribution, pass-rate ring, and per-browser bar chart — all rendered client-side with Chart.js.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(63,185,80,.12);color:var(--pass)">
+          <i class="fa-solid fa-camera"></i>
+        </div>
+        <h3>Auto Screenshots</h3>
+        <p>On test failure the registered WebDriver / AppiumDriver captures a screenshot, embeds it as base64, and shows a zoomable thumbnail in the expanded row.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(210,153,34,.12);color:var(--skip)">
+          <i class="fa-solid fa-moon"></i>
+        </div>
+        <h3>Dark &amp; Light Mode</h3>
+        <p>GitHub-style dark theme by default. One-click toggle persisted in <code>localStorage</code> — no flash on reload.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(248,81,73,.12);color:var(--fail)">
+          <i class="fa-brands fa-chrome"></i>
+        </div>
+        <h3>Browser &amp; OS Icons</h3>
+        <p>Chrome, Firefox, Edge, Safari, Opera brand icons. Windows, macOS, Linux, Android OS icons via Font Awesome — inferred from browser when OS is unknown.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(88,166,255,.12);color:var(--accent)">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <h3>Search &amp; Filter</h3>
+        <p>Live search across test name, description, browser, and OS. One-click filters for Passed / Failed / Skipped with animated counts.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(63,185,80,.12);color:var(--pass)">
+          <i class="fa-solid fa-file-export"></i>
+        </div>
+        <h3>Excel &amp; PDF Export</h3>
+        <p>Export the full result table to <code>.xlsx</code> via SheetJS or a formatted <code>.pdf</code> via jsPDF + AutoTable — with coloured status cells.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(165,214,255,.1);color:var(--accent2)">
+          <i class="fa-solid fa-image"></i>
+        </div>
+        <h3>Custom Project Logo</h3>
+        <p>Point <code>logo</code> in <code>openreporter.json</code> to a PNG/JPG/SVG — it's embedded as base64 in the report header. Supports relative and absolute paths.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(88,166,255,.12);color:var(--accent)">
+          <i class="fa-solid fa-puzzle-piece"></i>
+        </div>
+        <h3>Framework-Agnostic Core</h3>
+        <p>The core (<code>OpenReporter</code> singleton) has zero framework imports. Adapters for TestNG, JUnit&nbsp;5, and Cucumber plug into each framework's event system independently.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(63,185,80,.12);color:var(--pass)">
+          <i class="fa-solid fa-thread"></i>
+        </div>
+        <h3>Thread-Safe Parallel Execution</h3>
+        <p><code>ThreadLocal</code> is used for driver, browser, and current-test state — safe for any number of parallel threads in TestNG / JUnit / Cucumber.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Install ────────────────────────────────────────────────────────────── -->
+<section id="install">
+  <div class="section-inner">
+    <div class="section-label">Installation</div>
+    <h2 class="section-title">Two steps, then you're done</h2>
+    <p class="section-desc">
+      OpenReporter is distributed via <a href="https://jitpack.io" target="_blank" style="color:var(--accent)">JitPack</a>.
+      No account or token required — just add the repository and the dependency.
+    </p>
+
+    <div class="install-steps">
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          Add JitPack repository to <code>pom.xml</code>
+        </div>
+        <div class="code-block"><span class="tag">&lt;repositories&gt;</span>
+  <span class="tag">&lt;repository&gt;</span>
+    <span class="tag">&lt;id&gt;</span>jitpack.io<span class="tag">&lt;/id&gt;</span>
+    <span class="tag">&lt;url&gt;</span>https://jitpack.io<span class="tag">&lt;/url&gt;</span>
+  <span class="tag">&lt;/repository&gt;</span>
+<span class="tag">&lt;/repositories&gt;</span></div>
+        <div class="copy-row">
+          <span>Maven</span>
+          <button class="copy-btn" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copy</button>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          Add the dependency
+        </div>
+        <div class="code-block"><span class="tag">&lt;dependency&gt;</span>
+  <span class="tag">&lt;groupId&gt;</span>com.github.swadhinsoft<span class="tag">&lt;/groupId&gt;</span>
+  <span class="tag">&lt;artifactId&gt;</span>open-reporter<span class="tag">&lt;/artifactId&gt;</span>
+  <span class="tag">&lt;version&gt;</span>1.0.0<span class="tag">&lt;/version&gt;</span>
+  <span class="tag">&lt;scope&gt;</span>test<span class="tag">&lt;/scope&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></div>
+        <div class="copy-row">
+          <span>Maven · scope: test</span>
+          <button class="copy-btn" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:1.5rem">
+      <strong>Gradle (Kotlin DSL):</strong><br/>
+      <code style="color:var(--text)">testImplementation("com.github.swadhinsoft:open-reporter:1.0.0")</code>
+      — add <code>maven { url = uri("https://jitpack.io") }</code> to your <code>repositories</code> block first.
+    </div>
+  </div>
+</section>
+
+<!-- ── Integration ────────────────────────────────────────────────────────── -->
+<section id="integration">
+  <div class="section-inner">
+    <div class="section-label">Integration</div>
+    <h2 class="section-title">Pick your framework</h2>
+    <p class="section-desc">
+      Each adapter hooks into its framework's native event system.
+      You don't need to change your test logic — just wire the adapter once.
+    </p>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('testng',this)"><i class="fa-solid fa-vial"></i> TestNG</button>
+      <button class="tab" onclick="showTab('junit5',this)"><i class="fa-solid fa-flask"></i> JUnit 5</button>
+      <button class="tab" onclick="showTab('cucumber',this)"><i class="fa-solid fa-leaf"></i> Cucumber</button>
+    </div>
+
+    <!-- TestNG -->
+    <div class="tab-panel active" id="tab-testng">
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">1</div> Add listener to testng.xml</div>
+        <div class="code-block"><span class="tag">&lt;suite</span> <span class="val">name</span>=<span class="str">"MySuite"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;listeners&gt;</span>
+    <span class="tag">&lt;listener</span> <span class="val">class-name</span>=<span class="str">"io.github.swadhinsoft.openreporter.adapter.TestNGListener"</span><span class="tag">/&gt;</span>
+  <span class="tag">&lt;/listeners&gt;</span>
+  ...
+<span class="tag">&lt;/suite&gt;</span></div>
+      </div>
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">2</div> Register driver in your base class</div>
+        <div class="code-block"><span class="kw">import</span> io.github.swadhinsoft.openreporter.OpenReporter;
+
+<span class="kw">public class</span> BaseTest {
+
+    <span class="kw">private static final</span> ThreadLocal&lt;WebDriver&gt; driverTL = <span class="kw">new</span> ThreadLocal&lt;&gt;();
+
+    <span class="cmt">// helper used by tests</span>
+    <span class="kw">public</span> WebDriver getDriver() { <span class="kw">return</span> driverTL.get(); }
+
+    @BeforeMethod
+    <span class="kw">public void</span> setUp(@Optional(<span class="str">"chrome"</span>) String browser) {
+        WebDriver driver = createDriver(browser);
+        driverTL.set(driver);
+        OpenReporter.getInstance().registerDriver(driver);
+        OpenReporter.getInstance().setBrowser(browser);
+    }
+
+    @AfterMethod
+    <span class="kw">public void</span> tearDown() {
+        OpenReporter.getInstance().unregisterDriver();
+        WebDriver d = driverTL.get();
+        <span class="kw">if</span> (d != <span class="kw">null</span>) { d.quit(); driverTL.remove(); }
+    }
+}</div>
+      </div>
+      <div class="note">
+        <strong>Parallel execution:</strong> use <code>parallel="tests"</code> or <code>parallel="methods"</code> in testng.xml —
+        OpenReporter is ThreadLocal-safe.
+      </div>
+    </div>
+
+    <!-- JUnit 5 -->
+    <div class="tab-panel" id="tab-junit5">
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">1</div> Annotate your test class</div>
+        <div class="code-block"><span class="kw">import</span> io.github.swadhinsoft.openreporter.adapter.JUnit5Extension;
+<span class="kw">import</span> org.junit.jupiter.api.extension.ExtendWith;
+
+@ExtendWith(JUnit5Extension.class)
+<span class="kw">public class</span> SearchTest {
+    <span class="cmt">// your tests here</span>
+}</div>
+      </div>
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">2</div> Register driver in @BeforeEach / @AfterEach</div>
+        <div class="code-block">    @BeforeEach
+    <span class="kw">void</span> setUp() {
+        driver = <span class="kw">new</span> ChromeDriver();
+        OpenReporter.getInstance().registerDriver(driver);
+        OpenReporter.getInstance().setBrowser(<span class="str">"chrome"</span>);
+    }
+
+    @AfterEach
+    <span class="kw">void</span> tearDown() {
+        OpenReporter.getInstance().unregisterDriver();
+        <span class="kw">if</span> (driver != <span class="kw">null</span>) driver.quit();
+    }</div>
+      </div>
+      <div class="note">
+        <strong>Report flush:</strong> <code>JUnit5Extension</code> calls <code>generateReport()</code> in <code>@AfterAll</code> — one report per test class.
+        For a combined report across multiple classes, call <code>OpenReporter.getInstance().generateReport()</code> from a <code>TestExecutionListener</code> after the full run.
+      </div>
+    </div>
+
+    <!-- Cucumber -->
+    <div class="tab-panel" id="tab-cucumber">
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">1</div> Add plugin to @CucumberOptions</div>
+        <div class="code-block">@CucumberOptions(
+    features = <span class="str">"src/test/resources/features"</span>,
+    glue     = <span class="str">"com.example.steps"</span>,
+    plugin   = {
+        <span class="str">"pretty"</span>,
+        <span class="str">"io.github.swadhinsoft.openreporter.adapter.CucumberPlugin"</span>
+    }
+)
+<span class="kw">public class</span> TestRunner {}</div>
+      </div>
+      <div class="step-card">
+        <div class="step-header"><div class="step-num">2</div> Register driver in Cucumber @Before / @After</div>
+        <div class="code-block">    @Before
+    <span class="kw">public void</span> beforeScenario() {
+        driver = <span class="kw">new</span> ChromeDriver();
+        OpenReporter.getInstance().registerDriver(driver);
+        OpenReporter.getInstance().setBrowser(<span class="str">"chrome"</span>);
+    }
+
+    @After
+    <span class="kw">public void</span> afterScenario() {
+        OpenReporter.getInstance().unregisterDriver();
+        <span class="kw">if</span> (driver != <span class="kw">null</span>) driver.quit();
+    }</div>
+      </div>
+      <div class="note">
+        <strong>Report path:</strong> <code>target/open-reporter/report.html</code> by default.
+        Change it via <code>outputDir</code> in <code>openreporter.json</code>.
+      </div>
+    </div>
+
+    <!-- Framework compat cards -->
+    <div class="compat-row">
+      <div class="compat-card">
+        <div class="fw-name"><i class="fa-solid fa-vial" style="color:#3fb950"></i> TestNG</div>
+        <div class="fw-class">TestNGListener</div>
+        <div class="fw-desc">Implements ITestListener + ISuiteListener. Report generated on suite finish.</div>
+      </div>
+      <div class="compat-card">
+        <div class="fw-name"><i class="fa-solid fa-flask" style="color:#58a6ff"></i> JUnit 5</div>
+        <div class="fw-class">JUnit5Extension</div>
+        <div class="fw-desc">Implements BeforeEachCallback, TestWatcher, AfterAllCallback.</div>
+      </div>
+      <div class="compat-card">
+        <div class="fw-name"><i class="fa-solid fa-leaf" style="color:#3fb950"></i> Cucumber 7</div>
+        <div class="fw-class">CucumberPlugin</div>
+        <div class="fw-desc">Implements io.cucumber.plugin.EventListener. Report on TestRunFinished.</div>
+      </div>
+      <div class="compat-card">
+        <div class="fw-name"><i class="fa-brands fa-chrome" style="color:#4285f4"></i> Selenium / <i class="fa-solid fa-mobile-screen" style="color:#3ddc84"></i> Appium</div>
+        <div class="fw-class">registerDriver(driver)</div>
+        <div class="fw-desc">Any class implementing WebDriver — Selenium and Appium both work.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Config ─────────────────────────────────────────────────────────────── -->
+<section id="config">
+  <div class="section-inner">
+    <div class="section-label">Configuration</div>
+    <h2 class="section-title">openreporter.json</h2>
+    <p class="section-desc">
+      Drop <code>openreporter.json</code> in your project root. All fields are optional — sensible defaults apply.
+    </p>
+
+    <div class="install-steps" style="margin-bottom:2rem">
+      <div class="step-card">
+        <div class="step-header"><i class="fa-solid fa-file-code" style="color:var(--accent)"></i> openreporter.json (project root)</div>
+        <div class="code-block">{
+  <span class="str">"title"</span>:       <span class="val">"My Project Test Report"</span>,
+  <span class="str">"logo"</span>:        <span class="val">"src/test/resources/logo.png"</span>,
+  <span class="str">"outputDir"</span>:   <span class="val">"target/open-reporter"</span>,
+  <span class="str">"environment"</span>: <span class="val">"QA"</span>
+}</div>
+        <div class="copy-row">
+          <span>Relative paths resolve from project root</span>
+          <button class="copy-btn" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copy</button>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-header"><i class="fa-solid fa-terminal" style="color:var(--muted)"></i> Override path via JVM property</div>
+        <div class="code-block"><span class="cmt"># Maven Surefire</span>
+&lt;configuration&gt;
+  &lt;systemPropertyVariables&gt;
+    &lt;openreporter.config&gt;
+      /ci/config/openreporter.json
+    &lt;/openreporter.config&gt;
+  &lt;/systemPropertyVariables&gt;
+&lt;/configuration&gt;
+
+<span class="cmt"># Or on the command line</span>
+mvn test -Dopenreporter.config=/path/to/file.json</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <table class="config-table">
+        <thead>
+          <tr>
+            <th>Key</th><th>Description</th><th>Default</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>title</td><td>Report page title shown in browser tab and header</td><td>"Test Execution Report"</td></tr>
+          <tr><td>logo</td><td>Path to project logo (PNG / JPG / SVG / GIF). Embedded as base64, displayed at 60×60 px in the header</td><td>"" (uses default icon)</td></tr>
+          <tr><td>outputDir</td><td>Directory where <code>report.html</code> is written</td><td>"target/open-reporter"</td></tr>
+          <tr><td>environment</td><td>Environment label shown in the report (e.g. QA, Staging, Prod)</td><td>"—"</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note" style="margin-top:1.25rem">
+      <strong>Lookup order:</strong>
+      <code>-Dopenreporter.config</code> JVM property →
+      <code>openreporter.json</code> in <code>user.dir</code> (project root) →
+      <code>openreporter.json</code> on classpath →
+      built-in defaults. The reporter never fails if no file is found.
+    </div>
+  </div>
+</section>
+
+<!-- ── Report features ────────────────────────────────────────────────────── -->
+<section id="report">
+  <div class="section-inner">
+    <div class="section-label">Report Features</div>
+    <h2 class="section-title">What's inside the report</h2>
+    <p class="section-desc">Every report is a standalone HTML file you can open in any browser, attach to a CI artifact, or email directly.</p>
+
+    <div class="preview-grid">
+      <div class="preview-card">
+        <h3><i class="fa-solid fa-chart-bar"></i> Summary &amp; Charts</h3>
+        <ul class="feature-list">
+          <li><i class="fa-solid fa-circle-check"></i> 5 summary cards: Total / Passed / Failed / Skipped / Duration</li>
+          <li><i class="fa-solid fa-circle-check"></i> Animated doughnut chart (Chart.js)</li>
+          <li><i class="fa-solid fa-circle-check"></i> Pass-rate ring with conic-gradient</li>
+          <li><i class="fa-solid fa-circle-check"></i> Per-browser test count bars</li>
+        </ul>
+      </div>
+      <div class="preview-card">
+        <h3><i class="fa-solid fa-table-list"></i> Test Table</h3>
+        <ul class="feature-list">
+          <li><i class="fa-solid fa-circle-check"></i> Expandable rows: logs, error, stack trace, screenshot</li>
+          <li><i class="fa-solid fa-circle-check"></i> Browser brand icon + OS icon per row</li>
+          <li><i class="fa-solid fa-circle-check"></i> Live search (name / description / browser / OS)</li>
+          <li><i class="fa-solid fa-circle-check"></i> Passed / Failed / Skipped filter buttons</li>
+        </ul>
+      </div>
+      <div class="preview-card">
+        <h3><i class="fa-solid fa-camera"></i> Screenshots</h3>
+        <ul class="feature-list">
+          <li><i class="fa-solid fa-circle-check"></i> Captured automatically on failure</li>
+          <li><i class="fa-solid fa-circle-check"></i> Embedded as base64 — no external files needed</li>
+          <li><i class="fa-solid fa-circle-check"></i> Thumbnail in expanded row, click to zoom (lightbox)</li>
+          <li><i class="fa-solid fa-circle-check"></i> Works with any WebDriver: browser or Appium mobile</li>
+        </ul>
+      </div>
+      <div class="preview-card">
+        <h3><i class="fa-solid fa-file-export"></i> Export</h3>
+        <ul class="feature-list">
+          <li><i class="fa-solid fa-circle-check"></i> Excel (.xlsx) — SheetJS, column widths, header styling</li>
+          <li><i class="fa-solid fa-circle-check"></i> PDF — jsPDF + AutoTable, colour-coded status cells</li>
+          <li><i class="fa-solid fa-circle-check"></i> Dark / Light mode toggle (persisted in localStorage)</li>
+          <li><i class="fa-solid fa-circle-check"></i> Custom logo embedded from local file path</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CI/CD ───────────────────────────────────────────────────────────────── -->
+<section id="cicd">
+  <div class="section-inner">
+    <div class="section-label">CI / CD</div>
+    <h2 class="section-title">GitHub Actions — upload report as artifact</h2>
+    <p class="section-desc">
+      Reports land in <code>target/open-reporter/</code> by default.
+      Attach them as GitHub Actions artifacts so every run has a downloadable report.
+    </p>
+    <div class="step-card">
+      <div class="step-header"><i class="fa-brands fa-github" style="color:var(--accent)"></i> .github/workflows/tests.yml (excerpt)</div>
+      <div class="code-block"><span class="kw">- name:</span> Run tests
+  <span class="kw">run:</span> mvn test
+
+<span class="kw">- name:</span> Upload OpenReporter HTML report
+  <span class="kw">uses:</span> actions/upload-artifact@v4
+  <span class="kw">if:</span> always()   <span class="cmt"># upload even on failure</span>
+  <span class="kw">with:</span>
+    <span class="kw">name:</span> open-reporter-${{ github.run_number }}
+    <span class="kw">path:</span> target/open-reporter/
+    <span class="kw">retention-days:</span> 14</div>
+      <div class="copy-row">
+        <span>Place after your test step</span>
+        <button class="copy-btn" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copy</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<footer>
+  <span class="footer-logo">OpenReporter</span>
+  MIT License · Built with ❤️ by <a href="https://github.com/swadhinsoft" target="_blank">swadhinsoft</a><br/>
+  <br/>
+  <a href="https://github.com/swadhinsoft/open-reporter" target="_blank">
+    <i class="fa-brands fa-github"></i> GitHub
+  </a> &nbsp;·&nbsp;
+  <a href="https://jitpack.io/#swadhinsoft/open-reporter" target="_blank">JitPack</a> &nbsp;·&nbsp;
+  <a href="https://github.com/swadhinsoft/open-reporter/issues" target="_blank">Issues</a>
+</footer>
+
+<script>
+/* ── Tabs ────────────────────────────────────────────────────────────────── */
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── Copy ────────────────────────────────────────────────────────────────── */
+function copyCode(btn) {
+  const code = btn.closest('.step-card').querySelector('.code-block');
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+    setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 1800);
+  });
+}
+</script>
+</body>
+</html>
