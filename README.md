@@ -231,7 +231,7 @@ To use a specific branch via JitPack instead of a tag:
 - **Suite breakdown table** — per-suite pass/fail/skip/rate summary, automatically shown when 2+ suites are present
 - **Copy buttons** — one-click clipboard copy on error message and stack trace panels
 
-### v1.0.0 — 2026-03-29
+### v1.0.0 — 2024-03-21
 - Initial release
 - TestNG, JUnit 5, Cucumber 7 adapters
 - Selenium + Appium (WebDriver) support
